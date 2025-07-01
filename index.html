@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reel Talk 🎬</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 40px;
+      background: #f4f4f4;
+    }
+    .card {
+      width: 250px;
+      height: 200px;
+      border-radius: 12px;
+      perspective: 1000px;
+      display: block;
+      box-sizing: border-box;
+    }
+    .card-inner {
+      transform: rotateY(180deg);
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      box-sizing: border-box;
+    }
+    .card.flip .card-inner {
+      transform: rotateY(0deg) !important;
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+    .card-back {
+      background: repeating-linear-gradient(45deg, #222, #222 10px, #333 10px, #333 20px);
+      transform: rotateY(180deg);
+      color: #fff;
+      font-size: 48px;
+    }
+          
+    #cardContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      justify-items: center;
+    }
+    button {
+      font-family: inherit;
+      background-color: #e50914;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button.draw {
+      background: linear-gradient(135deg, #e50914 0%, #ff6f61 100%);
+      font-weight: bold;
+      border: 2px solid white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    button.selected {
+      background-color: #b20710;
+      font-weight: bold;
+      box-shadow: 0 0 0 2px white, 0 0 0 4px #e50914;
+    }
+    button:hover {
+      background-color: #b20710;
+    }
+    @keyframes shuffleMoveLeft {
+      0% { transform: translateX(-100%) rotate(-10deg); opacity: 0; }
+      100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes shuffleMoveRight {
+      0% { transform: translateX(100%) rotate(10deg); opacity: 0; }
+      100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+    }
+  .card.discarded .card-back img {
+      filter: grayscale(100%) brightness(0) contrast(1);
+    }
+
+    </style>
+</head>
+<body>
+
+<h1 style="font-size: 3em; color: #e50914; font-weight: 900; letter-spacing: -1px;">🎬 Reel Talk</h1>
+<button id="group1Btn" class="selected">🤪 Reel Fun</button>
+<button id="group2Btn">🤔 Reel Deep</button>
+<button id="drawCardBtn" class="draw">🃏 Draw Random Card</button>
+<div id="cardContainer"></div>
+
+<script>
+  const cardContainer = document.getElementById('cardContainer');
+
+  const group1 = [
+    "What's your most irrational fear?",
+    "What's a snack you could eat a disturbing amount of in one sitting?",
+    "What's your zombie apocalypse survival strategy?",
+    "What's a technical hill that you'd die on?",
+    "What's your go-to pizza topping combo?",
+    "What's your developer/engineering origin story?",
+    "If you had to give a TED-talk right now, what would it be about?",
+    "What fictional universe would you want to live in if you could?",
+    "What’s your go-to ‘I’m trying to survive this week’ meal?",
+    "What’s a movie you’ve watched way too many times but still quote like it’s new?",
+    "What game show would you could compete on, given the opportunity?",
+    "What appliance in your home would 100% betray you in a horror movie?",
+    "What condiment could you not live without?",
+    "What’s the best potato form: fry, tot, chip, mash, or hash?",
+    "If you could be any kind of animal, what would you be?",
+    "What's the strangest or most interesting thing you've ever eaten?"
+  ];
+
+  const group2 = [
+    "What's a job you had before Netflix that shaped how you work today?",
+    "What's a skill or hobby that you've always wanted to learn but haven't (yet)?",
+    "What's something on your bucket list that you haven't done yet?",
+    "If you could give your younger self one piece of advice, what would it be?",
+    "What’s a piece of advice you once received that stuck with you?",
+    "What’s something about your upbringing that shaped who you are today?",
+    "What’s something you’ve done that scared you—but you’re glad you did?",
+    "If you could press pause on everything for a month, how would you spend it?",
+    "When you were a kid, what did you want to be when you 'grew up?'",
+    "What was your favorite subject in school, and how does it show up in your life now?",
+    "What's a fear that you've overcome?",
+    "What’s a challenge you’ve faced that made you stronger?",
+    "What's something that you wish you spent more time doing?",
+    "What’s your favorite way to reset after a long day?",
+    "What's something that you're really bad at?",
+    "What is your number one goal in life?"
+  ];
+
+  let currentGroup = group1;
+
+  function displayCards(group) {
+    currentGroup = group;
+    cardContainer.innerHTML = '';
+    group.forEach((question, index) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const inner = document.createElement('div');
+      inner.className = 'card-inner';
+
+      const front = document.createElement('div');
+      front.className = 'card-front';
+      front.textContent = question;
+
+      const back = document.createElement('div');
+      back.className = 'card-back';
+      back.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix N" style="height: 50px; width: auto;">';
+
+      inner.appendChild(front);
+      inner.appendChild(back);
+      card.appendChild(inner);
+      card.style.animation = `${index % 2 === 0 ? 'shuffleMoveLeft' : 'shuffleMoveRight'} 0.5s ease-out ${index * 50}ms forwards`;
+      cardContainer.appendChild(card);
+    });
+  }
+
+  document.getElementById('group1Btn').addEventListener('click', () => {
+    document.getElementById('group1Btn').classList.add('selected');
+    document.getElementById('group2Btn').classList.remove('selected');
+    displayCards(group1);
+  });
+
+  document.getElementById('group2Btn').addEventListener('click', () => {
+    document.getElementById('group2Btn').classList.add('selected');
+    document.getElementById('group1Btn').classList.remove('selected');
+    displayCards(group2);
+  });
+
+  document.getElementById('drawCardBtn').addEventListener('click', () => {
+    let cards = document.querySelectorAll('.card');
+    if (cards.length === 0) {
+      displayCards(currentGroup);
+      cards = document.querySelectorAll('.card');
+    }
+    if (cards.length === 0) {
+      displayCards(currentGroup);
+    }
+    cards.forEach(card => {
+      if (card.classList.contains('flip')) {
+      card.classList.remove('flip');
+      card.classList.add('discarded');
+    }
+    });
+
+    const availableCards = Array.from(cards).filter(card => !card.classList.contains('discarded'));
+    if (availableCards.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * availableCards.length);
+    const selectedCard = availableCards[randomIndex];
+
+    selectedCard.classList.remove('hidden');
+    selectedCard.classList.add('flip');
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('group1Btn').click();
+  }, false);
+</script>
+
+</body>
+</html>
